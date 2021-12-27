@@ -1,0 +1,35 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[image folder]"
+    echo "      [image folder]: the test images for update BMC/Host"
+    echo ""
+    echo "Get the test image file versions"
+    exit 1
+}
+
+# mode option/check
+if [ ! -d "$1" ]; then
+  echo "$1 is not valid folder"
+  Usage
+fi
+folder=$1
+PATH="$(pwd):$PATH"
+get_tar_ver=`which get_tar_ver`
+if [ -z "$get_tar_ver" ];then
+  echo "Cannot get utils ""get_tar_ver"""
+  Usage
+fi
+
+# run command
+cd $folder
+image_pattern=(bios6.tar bios7.tar test_*.mmc.tar obmc*mmc.tar) # maybe add mcu?
+image_list=`ls ${image_pattern[@]} 2>/dev/null`
+if [ -z "$image_list" ]; then
+  echo "Cannot file any file match parttern"
+  exit 1
+fi
+for image in ${image_list[@]}; do
+  get_tar_ver $image -l
+done
+

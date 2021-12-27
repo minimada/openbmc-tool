@@ -1,0 +1,34 @@
+#!/bin/bash
+
+Usage(){
+    echo source ./`basename $0` "[bmc ip]"
+    echo "      [bmc ip]: bmc ip address"
+    echo " Util for get redfish token and export BMC IP Address"
+    exit 1
+}
+
+basic_check(){
+if [ -z "$token" ];then
+  echo "token is invalid, run 'source init [bmc ip]' first"
+  exit 1
+fi
+if [ -z "$bmc_ip" ];then
+  echo "no bmc ip set, run 'source init [bmc ip]' first"
+  exit 1
+fi
+}
+
+user="root"
+passwd="0penBmc"
+export -f basic_check
+
+if [ -n "$1" -a "$1" != "-h" ]; then
+  bmc_ip="$1"
+else
+  echo "BMC IP cannot be empty"
+  Usage
+fi
+export token=`curl -k -H "Content-Type: application/json" -X POST https://${bmc_ip}/login -d "{\"username\" :  \"${user}\", \"password\" :  \"${passwd}\"}" 2>/dev/null | grep token | awk '{print $2;}' | tr -d '"'`
+
+echo "token: ${token}"
+export bmc_ip

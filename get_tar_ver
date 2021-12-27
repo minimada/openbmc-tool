@@ -1,0 +1,38 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[image]"
+    echo "      [image]: the firmware image for update BMC/Host"
+    echo ""
+    echo "Get the image tar file version"
+    exit 1
+}
+
+# mode option/check
+if [ ! -f "$1" ]; then
+  echo "$1 is not valid file"
+  Usage
+fi
+image=$1
+one_line="n"
+if [ "$2" == "-l" ]; then
+  one_line="y"
+fi
+
+# run command
+res=`tar --get MANIFEST -f ${image} -O | grep version`
+
+#echo $res
+if [ -z "$res" ];then
+ echo "Cannot get version from image ${image}."
+fi
+
+ver=${res##version=}
+ver_hash=`echo -n $ver | sha512sum`
+ver_id=${ver_hash:0:8}
+if [ "$one_line" == "n" ]; then
+  echo "Version   : ${ver}"
+  echo "Version ID: ${ver_id}"
+else
+  echo "$(basename $image) | ${ver_id} | ${ver}"
+fi

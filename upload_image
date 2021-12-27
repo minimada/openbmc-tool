@@ -1,0 +1,36 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[bmc image]"
+    echo "      [bmc image]: the firmware image for update BMC"
+    echo ""
+    echo "Upload BMC image via post image to update service"
+    echo "Note: The upload image max size depends on BMCweb, "
+    echo "      please consider use tftp upload large image."
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ ! -f "$1" ]; then
+  echo "$1 is not valid file"
+  Usage
+fi
+image=$1
+
+# run command
+url="https://${bmc_ip}/redfish/v1/UpdateService"
+#  curl will use arg[n] to determine which paramter is url
+header="-H \"X-Auth-Token: ${token}\" -H \"Content-Type: application/octet-stream\""
+
+echo "cmd: curl -k ${header} -X POST -T ${image} ${url}"
+res=`curl -k -H "X-Auth-Token: ${token}" -H "Content-Type: application/octet-stream" -X POST -T ${image} ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[image] [tftp server]"
+    echo "      [image]: the firmware image for update BMC/Host"
+    echo "[tftp server]: the tftp server provide image"
+    echo ""
+    echo "Upload BMC/Host image via post image URL to update service"
+    echo "Note: The tftp function is optional for BMCweb "
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ -z "$1" ]; then
+  echo "image name should not be empty!"
+  Usage
+fi
+image="$1"
+# get default TFTP server from defconf
+test -f defconf && source defconf
+if [ -n "$2" ]; then
+  TFTP_SERVER="$2"
+fi
+if [ -z "$TFTP_SERVER" ];then
+  echo "TFTP server should not be empty!"
+  Usage
+fi
+
+# run command
+url="https://${bmc_ip}/redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate"
+
+res=`curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"ImageURI\": \"tftp://${TFTP_SERVER}/${image}\"}" ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi

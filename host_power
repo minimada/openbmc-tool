@@ -1,0 +1,45 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[action]"
+    echo "    [action]: power on/off the host PC"
+    echo ""
+    echo "    accept actions: On/ForceOff/ForceRestart/"
+    echo "            GracefulShutdown/GracefulRestart/"
+    echo "            PowerCycle/Nmi"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+# user must check reset type, here just some do lazy transfer
+if [ -z "$1" ]; then
+  echo "power action cannot be empty!"
+  Usage
+elif [ "$1" == "off" -o "$1" == "Off" ]; then
+  action="GracefulShutdown"
+elif [ "$1" == "on" ]; then
+  action="On"
+elif [ "$1" == "reboot" ]; then
+   action="GracefulRestart"
+else
+  action="$1"
+fi
+echo "action: ${action}"
+
+# run command
+url="https://${bmc_ip}/redfish/v1/Systems/system/Actions/ComputerSystem.Reset/"
+
+#echo "curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"ResetType\": \"${action}\"}" ${url} 2>/dev/null"
+res=`curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"ResetType\": \"${action}\"}" ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi
+
+

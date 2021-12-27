@@ -1,0 +1,38 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[apply time]"
+    echo "      [apply time]: Immediate or OnReset"
+    echo ""
+    echo "Set update service apply time"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ -z "$1" ]; then
+  echo "apply time should not be empty!"
+  Usage
+fi
+apply_time="$1"
+# ignore check apply time if in force mode
+if [ "$2" != "-f" -a "Immediate" != "$apply_time" -a "OnReset" != "$apply_time" ]; then
+  echo "${1} is not valid apply time"
+  Usage
+fi
+
+# run command
+url="https://${bmc_ip}/redfish/v1/UpdateService"
+data="'{\"HttpPushUriOptions\":{\"HttpPushUriApplyTime\":{\"ApplyTime\":\"${apply_time}\"}}}'"
+
+res=`curl -k -H "X-Auth-Token: ${token}" -X PATCH -d "{\"HttpPushUriOptions\":{\"HttpPushUriApplyTime\":{\"ApplyTime\":\"${apply_time}\"}}}" ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi
+
