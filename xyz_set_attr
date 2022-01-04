@@ -1,0 +1,35 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[xyz item] [xyz attr] [type] [value]"
+    echo "   ex: /xyz/openbmc_project/software/attr/FieldModeEnabled"
+    echo "   xyz item: software"
+    echo "   xyz attr: FieldModeEnabled"
+    echo "   type    : the value type, bool, number, string"
+    echo ""
+    echo "Set xyz rest API attriute"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ -z "${1}" -o -z "${2}" -o -z "${3}" -o -z "${4}" ]; then
+  echo "Please set up xyz item, attribute or value!"
+  Usage
+fi
+xyz_item="$1"
+xyz_attr="$2"
+xyz_val="$4"
+# debug
+#echo "${1}, ${2}, ${3}, ${4}"
+#echo
+
+# run command
+# TODO: verify data type? string type need additional handle
+url="https://${bmc_ip}/xyz/openbmc_project/${xyz_item}/attr/${xyz_attr}"
+res=`curl -k -H "X-Auth-Token: $token" -X PUT -d "{\"data\": ${xyz_val}}" ${url} 2>/dev/null`
+
+echo $res
+

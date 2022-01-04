@@ -1,0 +1,38 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[value]"
+    echo "   value: true or false"
+    echo ""
+    echo "Set FieldModeEnabled via xyz rest API"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ ! -f xyz_set_attr -o ! -f xyz_get_attr ]; then
+  echo "Cannot find set attribute xyz script!"
+  exit 1
+fi
+
+if [ -z "${1}" ];then
+  echo "value cannot be empty"
+  Usage
+fi
+xyz_value="$1"
+
+# run command
+res=`./xyz_set_attr software FieldModeEnabled bool "${xyz_value}"`
+
+# verify set data if success
+success=`echo $res|grep -o OK`
+if [ -n "$success" ];then
+  res=`./xyz_get_attr software FieldModeEnabled`
+  data=`echo $res |sed "s/, \"message.*//"|sed "s/{ \"data\"://"`
+  echo "FieldModeEnabled: $data"
+
+else
+  echo $res
+fi

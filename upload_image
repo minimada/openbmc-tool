@@ -26,11 +26,12 @@ url="https://${bmc_ip}/redfish/v1/UpdateService"
 header="-H \"X-Auth-Token: ${token}\" -H \"Content-Type: application/octet-stream\""
 
 echo "cmd: curl -k ${header} -X POST -T ${image} ${url}"
-res=`curl -k -H "X-Auth-Token: ${token}" -H "Content-Type: application/octet-stream" -X POST -T ${image} ${url} 2>/dev/null`
+res=`curl -k -w "\nhttp status:%{http_code}\n" -H "X-Auth-Token: ${token}" -H "Content-Type: application/octet-stream" -X POST -T ${image} ${url} 2>/dev/null`
 
 # echo result
 echo $res | grep -o OK
 if [ "$?" != "0" ]; then
+  echo
   echo $res
   exit 1
 fi
