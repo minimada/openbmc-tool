@@ -1,0 +1,24 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0`
+    echo ""
+    echo " test update LDAP configuration function via redfish API"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+
+# run command
+url="https://${bmc_ip}/redfish/v1/AccountService"
+
+res=`curl -k -H "X-Auth-Token: ${token}" -X PATCH -d "{\"LDAP\": {\"RemoteRoleMapping\": [{\"LocalRole\":\"Administrator\", \"RemoteGroup\": \"priv-admin\"}]}}" ${url} 2>/dev/null`
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi

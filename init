@@ -1,8 +1,10 @@
 #!/bin/bash
 
 Usage(){
-    echo source ./`basename $0` "[bmc ip]"
+    echo source ./`basename $0` "[bmc ip] [user] [passwd]"
     echo "      [bmc ip]: bmc ip address"
+    echo "      [user]  : option, login with specific user"
+    echo "      [passwd]: option, the login user's password"
     echo " Util for get redfish token and export BMC IP Address"
     exit 1
 }
@@ -28,6 +30,13 @@ else
   echo "BMC IP cannot be empty"
   Usage
 fi
+if [ -n "$2" -a -n "$3" ]; then
+  echo "login with user: $2"
+  user="$2"
+  passwd="$3"
+fi
+
+# run command
 export token=`curl -k -H "Content-Type: application/json" -X POST https://${bmc_ip}/login -d "{\"username\" :  \"${user}\", \"password\" :  \"${passwd}\"}" 2>/dev/null | grep token | awk '{print $2;}' | tr -d '"'`
 
 echo "token: ${token}"
