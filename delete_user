@@ -1,0 +1,33 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[name]"
+    echo "    [name]   : user name"
+    echo ""
+    echo "    delete a user via Redfish API"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ "$1" == "-h" ];then
+  Usage
+fi
+user=admin_user
+
+# run command
+url="https://${bmc_ip}/redfish/v1/AccountService/Accounts/${user}"
+
+#debug pring
+echo $url
+
+res=`curl -k -w "\nhttp status:%{http_code}\n" -H "X-Auth-Token: ${token}" -X DELETE ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi

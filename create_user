@@ -1,0 +1,54 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[name] [passwd] [role] [enabled]"
+    echo "    [name]   : user name"
+    echo "    [passwd] : user password"
+    echo "    [role]   : user role, like Administrator, Operator..."
+    echo "    [enabled]: the user will create with status enabled or not"
+    echo "               value: True or False"
+    echo ""
+    echo "    create a user via Redfish API"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# mode option/check
+if [ "$1" == "-h" ];then
+  Usage
+fi
+user=admin_user
+pass=TestPwd123
+role=Administrator
+enabled="true"
+if [ -n "$1" ];then
+  user="$1"
+fi
+if [ -n "$2" ];then
+  pass=$2
+fi
+if [ -n "$3" ];then
+  role=$3
+fi
+if [ -n "$4" ];then
+  enabled=$4
+fi
+
+
+# run command
+url="https://${bmc_ip}/redfish/v1/AccountService/Accounts/"
+
+#debug pring
+#echo curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"UserName\": \"${user}\", \"Password\": \"${pass}\", \"RoleId\": \"${role}\", \"Enabled\": ${enabled}}"
+
+res=`curl -k -w "\nhttp status:%{http_code}\n" -H "X-Auth-Token: ${token}" -X POST -d "{\"UserName\": \"${user}\", \"Password\": \"${pass}\", \"RoleId\": \"${role}\", \"Enabled\": ${enabled}}" ${url} 2>/dev/null`
+
+# echo result
+echo $res | grep -o OK
+if [ "$?" != "0" ]; then
+  echo $res
+  exit 1
+fi
+
