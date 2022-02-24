@@ -1,38 +1,83 @@
 #!/bin/bash
 
 Usage(){
-    echo `basename $0` "[image]"
-    echo "      [image]: the firmware image for update BMC/Host"
+    echo `basename $0` "[image] [option]"
+    echo "     [image]: the firmware image for update BMC/Host"
+    echo "     [option]"
+    echo "        -f: show functional version"
+    echo "        -l: present version infomation in one line"
+    echo "        -v: use the first parameter as version not image file"
     echo ""
-    echo "Get the image tar file version"
+    echo "Get the image tar file version and version ID"
     exit 1
 }
 
+getId(){
+    ver=$1
+    fid=$2
+    vhash=`echo -n ${ver}${fid} | sha512sum`
+    echo ${vhash:0:8}
+}
+
+is_tar=y
 # mode option/check
-if [ ! -f "$1" ]; then
-  echo "$1 is not valid file"
+if [ "$1" == "-h" -o "$1" == "--help" ]; then
   Usage
 fi
 image=$1
 one_line="n"
-if [ "$2" == "-l" ]; then
-  one_line="y"
+print_func="n"
+shift
+while [ -n "$1" ]
+do
+  if [ "$1" == "-l" ]; then
+    one_line="y"
+  elif [ "$1" == "-f" ];then
+    print_func="y"
+  elif [ "$1" == "-v" ];then
+    is_tar=n
+  fi
+  shift
+done
+if [ ! -f "$image" -a "$is_tar" == "y" ]; then
+   echo "$image is not valid file, use it as version"
+   is_tar=n
 fi
 
 # run command
-res=`tar --get MANIFEST -f ${image} -O | grep version`
+if [ "$is_tar" == "y" ]; then
+  res=`tar --get MANIFEST -f ${image} -O | grep version`
+else
+  res="$image"
+fi
 
 #echo $res
 if [ -z "$res" ];then
  echo "Cannot get version from image ${image}."
 fi
 
+# Note. from software manager support same image for multiple times
+# commit 59b640b07148c56e0a344dda198fcac0cd9af836
+# the version ID will calculate by version + flash id
+# in mmc image, flash id may be a, b, a-functional, or b-functional
+# it's not easy to know which one the system is using without system infomation
+
 ver=${res##version=}
-ver_hash=`echo -n $ver | sha512sum`
-ver_id=${ver_hash:0:8}
+vera_id=`getId ${ver} a`
+verb_id=`getId ${ver} b`
+veraf_id=`getId ${ver} a-functional`
+verbf_id=`getId ${ver} b-functional`
 if [ "$one_line" == "n" ]; then
   echo "Version   : ${ver}"
-  echo "Version ID: ${ver_id}"
+  if [ "$print_func" == "n" ]; then
+    echo "Version ID A: ${vera_id}, B: ${verb_id}"
+  else
+    echo "Version ID A: ${veraf_id}, B: ${verbf_id}"
+  fi
 else
-  echo "$(basename $image) | ${ver_id} | ${ver}"
+  if [ "$print_func" == "n" ]; then
+    echo "$(basename $image) | ${ver} | ${vera_id} | ${verb_id}"
+  else
+    echo "$(basename $image) | ${ver} | ${veraf_id} | ${verbf_id}"
+  fi
 fi
