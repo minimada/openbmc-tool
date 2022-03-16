@@ -1,0 +1,17 @@
+#!/bin/bash
+
+Usage(){
+    echo `basename $0` "[apply time]"
+    echo "      [apply time]: Immediate or OnReset"
+    echo ""
+    echo "Get update service apply time"
+    exit 1
+}
+
+# basic check
+basic_check
+
+# run command
+curl -k -H "X-Auth-Token: $token" -X POST https://${bmc_ip}/redfish/v1/Managers/bmc/Actions/Manager.ResetToDefaults -d '{"ResetToDefaultsType": "ResetAll"}'
+
+
