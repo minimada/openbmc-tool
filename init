@@ -6,7 +6,7 @@ Usage(){
     echo "      [user]  : option, login with specific user"
     echo "      [passwd]: option, the login user's password"
     echo " Util for get redfish token and export BMC IP Address"
-    exit 1
+#    exit 1
 }
 
 basic_check(){

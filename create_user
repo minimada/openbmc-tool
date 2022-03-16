@@ -41,7 +41,7 @@ fi
 url="https://${bmc_ip}/redfish/v1/AccountService/Accounts/"
 
 #debug pring
-#echo curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"UserName\": \"${user}\", \"Password\": \"${pass}\", \"RoleId\": \"${role}\", \"Enabled\": ${enabled}}"
+#echo curl -k -H "X-Auth-Token: ${token}" -X POST -d "{\"UserName\": \"${user}\", \"Password\": \"${pass}\", \"RoleId\": \"${role}\", \"Enabled\": ${enabled}}" ${url}
 
 res=`curl -k -w "\nhttp status:%{http_code}\n" -H "X-Auth-Token: ${token}" -X POST -d "{\"UserName\": \"${user}\", \"Password\": \"${pass}\", \"RoleId\": \"${role}\", \"Enabled\": ${enabled}}" ${url} 2>/dev/null`
 
