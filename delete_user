@@ -12,15 +12,18 @@ Usage(){
 basic_check
 
 # mode option/check
-if [ "$1" == "-h" ];then
+if [ "$1" == "-h" ]; then
   Usage
 fi
 user=admin_user
+if [ -n "$1" ]; then
+  user=$1
+fi
 
 # run command
 url="https://${bmc_ip}/redfish/v1/AccountService/Accounts/${user}"
 
-#debug pring
+#debug print
 echo $url
 
 res=`curl -k -w "\nhttp status:%{http_code}\n" -H "X-Auth-Token: ${token}" -X DELETE ${url} 2>/dev/null`
