@@ -12,6 +12,10 @@ Usage(){
 basic_check
 
 # mode option/check
+if [ ! -f xyz_set_attr ]; then
+  # try to go script folder first
+  cd $(dirname `realpath $0`)
+fi
 if [ ! -f xyz_set_attr -o ! -f xyz_get_attr ]; then
   echo "Cannot find set attribute xyz script!"
   exit 1
