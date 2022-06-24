@@ -24,7 +24,7 @@ fi
 
 # run command
 cd $folder
-image_pattern=(bios6.tar bios7.tar test_*.mmc.tar obmc*mmc.tar) # maybe add mcu?
+image_pattern=(bios6.tar bios7.tar test_*.tar obmc-*.tar) # maybe add mcu?
 image_list=`ls ${image_pattern[@]} 2>/dev/null`
 if [ -z "$image_list" ]; then
   echo "Cannot file any file match parttern"
