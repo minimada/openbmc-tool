@@ -1,0 +1,70 @@
+#!/bin/bash
+
+Usage(){
+    echo "$(basename "${0}")" "[bmc image] [BMC IP]"
+    echo "      [bmc image]: the BMC firmware image for eMMC"
+    echo "      [bmc IP]: the BMC IP address"
+    echo ""
+    echo "Upload BMC image via scp and Openbmc update script"
+    echo "Note: The script depend on ssh, please consider "
+    echo "      run ssh-copy-id first to prevent enter password."
+    exit 1
+}
+
+toggle(){
+if [ "$1" == "bootside=a" ];then
+  echo "b"
+else
+  echo "a"
+fi
+}
+
+# basic check
+# this script base on ssh not token, so we don't need basic_check
+
+# mode option/check
+if [ ! -f "$1" ]; then
+  echo "No valid file found, $1"
+  Usage
+fi
+image="$1"
+
+if [ -z "$2" ]; then
+  if [ -z "$bmc_ip" ]; then
+    Usage
+  else
+    BMC_IP="$bmc_ip"
+  fi
+else
+  BMC_IP="$2"
+fi
+
+# run command
+set -e
+
+## upload image
+IMG_DIR="/tmp/images/"
+
+## clean up upload dir to avoid confuse
+ssh "root@${BMC_IP}" "rm -rf ${IMG_DIR}/*"
+
+scp "${image}" "root@${BMC_IP}:${IMG_DIR}"
+id=$(ssh "root@${BMC_IP}" "ls ${IMG_DIR}")
+if [ -z "${id}" ]; then
+  echo "no valid image"
+  exit 1
+fi
+
+## perform update image
+ssh "root@${BMC_IP}" "obmc-flash-bmc mmc ${id} ${IMG_DIR}"
+
+## update bootside to another
+bootside=$(ssh "root@${BMC_IP}" "fw_printenv bootside")
+boot=$(toggle "${bootside}")
+ssh "root@${BMC_IP}" "fw_setenv bootside ${boot}"
+set +e
+
+
+# echo result
+echo "update success, run reboot for make change effect"
+
